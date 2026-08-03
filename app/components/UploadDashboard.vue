@@ -52,47 +52,14 @@
             </div>
 
             <aside class="space-y-6 p-6 sm:p-8">
-                <div class="rounded-3xl border border-slate-200 bg-slate-50/80 p-5">
-                    <div class="flex items-start justify-between gap-4">
-                        <div>
-                            <p class="text-sm font-medium text-slate-950">Ingestion profile</p>
-                            <p class="mt-1 text-sm leading-6 text-slate-600">
-                                Minimal defaults for a document RAG pipeline.
-                            </p>
-                        </div>
-                        <span class="rounded-full bg-cyan-100 px-3 py-1 text-xs font-medium text-cyan-800">
-                            Ready
-                        </span>
-                    </div>
-
-                    <dl class="mt-5 grid gap-4 sm:grid-cols-2">
-                        <div class="rounded-2xl border border-white bg-white p-4 shadow-sm">
-                            <dt class="text-xs uppercase tracking-[0.2em] text-slate-500">Accepted</dt>
-                            <dd class="mt-2 text-sm font-medium text-slate-950">PDF, TXT, DOCX, CSV, MD</dd>
-                        </div>
-                        <div class="rounded-2xl border border-white bg-white p-4 shadow-sm">
-                            <dt class="text-xs uppercase tracking-[0.2em] text-slate-500">Chunking</dt>
-                            <dd class="mt-2 text-sm font-medium text-slate-950">1,000 tokens / 150 overlap</dd>
-                        </div>
-                        <div class="rounded-2xl border border-white bg-white p-4 shadow-sm">
-                            <dt class="text-xs uppercase tracking-[0.2em] text-slate-500">Embedding</dt>
-                            <dd class="mt-2 text-sm font-medium text-slate-950">Queued for vectorization</dd>
-                        </div>
-                        <div class="rounded-2xl border border-white bg-white p-4 shadow-sm">
-                            <dt class="text-xs uppercase tracking-[0.2em] text-slate-500">Index</dt>
-                            <dd class="mt-2 text-sm font-medium text-slate-950">Qdrant collection</dd>
-                        </div>
-                    </dl>
-                </div>
-
-                <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div class="rounded-3xl max-h-full border border-slate-200 bg-white p-5 shadow-sm">
                     <div class="flex items-center justify-between gap-4">
                         <div>
                             <p class="text-sm font-medium text-slate-950">Queue</p>
                             <p class="mt-1 text-sm text-slate-600">{{ queueSubtitle }}</p>
                         </div>
                         <button v-if="files.length" type="button"
-                            class="text-sm font-medium text-slate-500 transition hover:text-cyan-700"
+                            class="cursor-pointer text-sm font-medium text-slate-500 transition hover:text-cyan-700"
                             @click="clearFiles">
                             Clear all
                         </button>
@@ -109,13 +76,19 @@
 
 <script setup lang="ts">
 const files = ref<File[]>([])
-const uploadState = ref<'idle' | 'ready'>('idle')
+const uploadState = ref<'idle' | 'ready' | 'uploading'>('idle')
 
 const fileCount = computed(() => files.value.length)
 const totalBytes = computed(() => files.value.reduce((sum, file) => sum + file.size, 0))
 
 const totalSizeLabel = computed(() => formatBytes(totalBytes.value))
-const uploadStateLabel = computed(() => (uploadState.value === 'ready' ? 'Ready' : 'Idle'))
+const uploadStateLabel = computed(() => {
+    if (uploadState.value === 'uploading') {
+        return 'Uploading'
+    }
+
+    return uploadState.value === 'ready' ? 'Ready' : 'Idle'
+})
 const queueSubtitle = computed(() => {
     if (!fileCount.value) {
         return 'No files selected yet.'
@@ -124,9 +97,10 @@ const queueSubtitle = computed(() => {
     return `${fileCount.value} file${fileCount.value === 1 ? '' : 's'} staged for ingestion.`
 })
 
-function addFiles(incomingFiles: File[]) {
+async function addFiles(incomingFiles: File[]) {
     const existingKeys = new Set(files.value.map(getFileKey))
     const nextFiles = [...files.value]
+    const filesToUpload: File[] = []
 
     for (const file of incomingFiles) {
         const key = getFileKey(file)
@@ -136,10 +110,23 @@ function addFiles(incomingFiles: File[]) {
 
         existingKeys.add(key)
         nextFiles.push(file)
+        filesToUpload.push(file)
     }
 
     files.value = nextFiles
     uploadState.value = nextFiles.length ? 'ready' : 'idle'
+
+    if (!filesToUpload.length) {
+        return
+    }
+
+    uploadState.value = 'uploading'
+
+    try {
+        await saveFilesToServer(filesToUpload)
+    } finally {
+        uploadState.value = files.value.length ? 'ready' : 'idle'
+    }
 }
 
 function removeFile(index: number) {
@@ -150,6 +137,19 @@ function removeFile(index: number) {
 function clearFiles() {
     files.value = []
     uploadState.value = 'idle'
+}
+
+async function saveFilesToServer(filesToUpload: File[]) {
+    const formData = new FormData()
+
+    for (const file of filesToUpload) {
+        formData.append('files', file, file.name)
+    }
+
+    await $fetch('/api/uploads', {
+        method: 'POST',
+        body: formData,
+    })
 }
 
 function getFileKey(file: File) {

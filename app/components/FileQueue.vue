@@ -8,7 +8,7 @@
             </p>
         </div>
 
-        <ul v-else class="max-h-64 space-y-3 overflow-y-auto pr-2">
+        <ul v-else class="max-h-[70vh] space-y-3 overflow-y-auto pr-2">
             <li v-for="(file, index) in files" :key="`${file.name}-${file.size}-${file.lastModified}`"
                 class="flex items-center justify-between gap-4 rounded-[1.25rem] border border-slate-200 bg-white px-4 py-3 shadow-sm">
                 <div class="min-w-0">
@@ -21,7 +21,7 @@
                 </div>
 
                 <button type="button"
-                    class="shrink-0 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-cyan-300 hover:text-cyan-700"
+                    class="cursor-pointer shrink-0 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-cyan-300 hover:text-cyan-700"
                     @click="emit('remove', index)">
                     Remove
                 </button>

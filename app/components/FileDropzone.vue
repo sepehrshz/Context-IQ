@@ -22,7 +22,7 @@
 
             <div class="flex flex-col gap-3 sm:items-end">
                 <button type="button"
-                    class="inline-flex items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800"
+                    class="cursor-pointer inline-flex items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800"
                     @click="triggerPicker">
                     Browse files
                 </button>
