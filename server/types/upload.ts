@@ -1,7 +1,8 @@
 export interface UploadedFile {
   originalName: string;
   savedName: string;
-  relativePath: string;
+  path: string;
   size: number;
   mimeType: string;
+  hash: string;
 }

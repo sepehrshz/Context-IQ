@@ -75,7 +75,14 @@
 </template>
 
 <script setup lang="ts">
-const files = ref<File[]>([])
+import type { DocumentFile } from '~~/server/types/document'
+const files = ref<DocumentFile[]>([])
+const diskFiles = ref<File[]>([])
+
+onMounted(async () => {
+    files.value = await $fetch<DocumentFile[]>('/api/documents', { method: 'GET' })
+})
+
 const uploadState = ref<'idle' | 'ready' | 'uploading'>('idle')
 
 const fileCount = computed(() => files.value.length)
@@ -98,8 +105,8 @@ const queueSubtitle = computed(() => {
 })
 
 async function addFiles(incomingFiles: File[]) {
-    const existingKeys = new Set(files.value.map(getFileKey))
-    const nextFiles = [...files.value]
+    const existingKeys = new Set(diskFiles.value.map(getFileKey))
+    const nextFiles = [...diskFiles.value]
     const filesToUpload: File[] = []
 
     for (const file of incomingFiles) {
@@ -113,7 +120,7 @@ async function addFiles(incomingFiles: File[]) {
         filesToUpload.push(file)
     }
 
-    files.value = nextFiles
+    diskFiles.value = nextFiles
     uploadState.value = nextFiles.length ? 'ready' : 'idle'
 
     if (!filesToUpload.length) {
@@ -123,20 +130,34 @@ async function addFiles(incomingFiles: File[]) {
     uploadState.value = 'uploading'
 
     try {
-        await saveFilesToServer(filesToUpload)
+        const uploadedFiles = await saveFilesToServer(filesToUpload)
+
+        files.value.push(...uploadedFiles)
+
+        diskFiles.value = []
     } finally {
-        uploadState.value = files.value.length ? 'ready' : 'idle'
+        uploadState.value = 'ready'
     }
 }
 
-function removeFile(index: number) {
-    files.value = files.value.filter((_, currentIndex) => currentIndex !== index)
-    uploadState.value = files.value.length ? 'ready' : 'idle'
+async function removeFile(index: number) {
+    const file = files.value[index]
+
+    if (!file) {
+        return
+    }
+
+    await $fetch(`/api/documents/${file.id}`, {
+        method: 'DELETE',
+    })
+
+    files.value.splice(index, 1)
 }
 
 function clearFiles() {
-    files.value = []
-    uploadState.value = 'idle'
+    // files.value = files.value.filter((_, currentIndex) => currentIndex !== index)
+    // uploadState.value = files.value.length ? 'ready' : 'idle'    diskFiles.value = []
+    // uploadState.value = 'idle'
 }
 
 async function saveFilesToServer(filesToUpload: File[]) {
@@ -146,7 +167,7 @@ async function saveFilesToServer(filesToUpload: File[]) {
         formData.append('files', file, file.name)
     }
 
-    await $fetch('/api/uploads', {
+    return await $fetch<DocumentFile[]>('/api/documents', {
         method: 'POST',
         body: formData,
     })

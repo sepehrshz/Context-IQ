@@ -1,8 +1,8 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import type { MultiPartData } from "h3";
 import path, { join, resolve } from "node:path";
-import { UploadedFile } from "../types/upload";
-import { randomUUID } from "node:crypto";
+import { randomUUID, createHash } from "node:crypto";
+import type { UploadedFile } from "../types/upload";
 
 export async function uploadFiles(parts: MultiPartData[]) {
   const allowedMimeTypes = [
@@ -11,6 +11,7 @@ export async function uploadFiles(parts: MultiPartData[]) {
     "text/plain",
     "text/markdown",
   ];
+
   const allowedExtensions = [".pdf", ".docx", ".txt", ".md"];
 
   if (!parts.length) {
@@ -21,14 +22,15 @@ export async function uploadFiles(parts: MultiPartData[]) {
   }
 
   const uploadsDirectory = resolve(process.cwd(), "uploads");
+
   await mkdir(uploadsDirectory, { recursive: true });
 
-  const savedFiles: UploadedFile[] = [];
-
-  for (const part of parts) {
+  const uploadTasks = parts.map(async (part) => {
     if (!part.filename || !part.data) {
-      continue;
+      return null;
     }
+
+    const hash = createHash("sha256").update(part.data).digest("hex");
 
     const originalName = part.filename;
     const ext = path.extname(originalName).toLowerCase();
@@ -46,19 +48,28 @@ export async function uploadFiles(parts: MultiPartData[]) {
     const safeName = path
       .basename(originalName)
       .replace(/[^a-zA-Z0-9._-]+/g, "_");
+
     const savedName = `${randomUUID()}-${safeName}`;
+
     const absolutePath = join(uploadsDirectory, savedName);
 
     await writeFile(absolutePath, part.data);
 
-    savedFiles.push({
+    return {
       originalName,
       savedName,
-      relativePath: `uploads/${savedName}`,
+      path: `uploads/${savedName}`,
       size: part.data.length,
       mimeType: part.type || "application/octet-stream",
-    });
-  }
+      hash,
+    } satisfies UploadedFile;
+  });
+
+  const files = await Promise.all(uploadTasks);
+
+  const savedFiles = files.filter(
+    (file): file is UploadedFile => file !== null,
+  );
 
   if (!savedFiles.length) {
     throw createError({

@@ -9,11 +9,13 @@
         </div>
 
         <ul v-else class="max-h-[70vh] space-y-3 overflow-y-auto pr-2">
-            <li v-for="(file, index) in files" :key="`${file.name}-${file.size}-${file.lastModified}`"
-                class="flex items-center justify-between gap-4 rounded-[1.25rem] border border-slate-200 bg-white px-4 py-3 shadow-sm">
+            <!-- <li v-for="(file, index) in files" :key="`${file.originalName}-${file.size}-${file.updatedAt}`"  -->
+            <!-- class="flex items-center justify-between gap-4 rounded-[1.25rem] border border-slate-200 bg-white px-4 py-3
+                shadow-sm"> -->
+            <li v-for="(file, index) in files" :key="file.id">
                 <div class="min-w-0">
                     <p class="truncate text-sm font-medium text-slate-950">
-                        {{ file.name }}
+                        {{ file.originalName }}
                     </p>
                     <p class="mt-1 text-xs text-slate-500">
                         {{ fileTypeLabel(file) }} · {{ formatBytes(file.size) }}
@@ -31,20 +33,23 @@
 </template>
 
 <script setup lang="ts">
+import type { DocumentFile } from '~~/server/types/document';
+
+
 defineProps<{
-    files: File[]
+    files: DocumentFile[]
 }>()
 
 const emit = defineEmits<{
     (event: 'remove', index: number): void
 }>()
 
-function fileTypeLabel(file: File) {
-    if (file.type) {
-        return file.type
+function fileTypeLabel(file: DocumentFile) {
+    if (file.mimeType) {
+        return file.mimeType
     }
 
-    const extension = file.name.split('.').pop()?.toUpperCase()
+    const extension = file.originalName.split('.').pop()?.toUpperCase()
     return extension ? extension : 'Unknown type'
 }
 
