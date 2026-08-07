@@ -34,12 +34,3 @@ export async function deleteDocument(id: string) {
     },
   });
 }
-
-export async function renameDocument(id: string, fileName: string) {
-  return prisma.document.update({
-    where: { id },
-    data: {
-      originalName: fileName,
-    },
-  });
-}
