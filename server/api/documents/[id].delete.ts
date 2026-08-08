@@ -1,4 +1,4 @@
-import { deleteDocument } from "~~/server/repositories/document.repository.ts";
+import { deleteDocument } from "../../repositories/document.repository";
 import prisma from "../../libs/prisma";
 import { resolve } from "node:path";
 import { unlink } from "node:fs/promises";

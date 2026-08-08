@@ -538,6 +538,7 @@ export const DocumentScalarFieldEnum = {
   mimeType: 'mimeType',
   size: 'size',
   hash: 'hash',
+  text: 'text',
   status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'

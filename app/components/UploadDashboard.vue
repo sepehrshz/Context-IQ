@@ -134,6 +134,12 @@ async function addFiles(incomingFiles: File[]) {
 
         files.value.push(...uploadedFiles)
 
+        for (const file of uploadedFiles) {
+            await $fetch(`/api/documents/${file.id}/parse`, {
+                method: 'POST',
+            })
+        }
+
         diskFiles.value = []
     } finally {
         uploadState.value = 'ready'
