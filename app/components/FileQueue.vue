@@ -9,9 +9,6 @@
         </div>
 
         <ul v-else class="max-h-[70vh] space-y-3 overflow-y-auto pr-2">
-            <!-- <li v-for="(file, index) in files" :key="`${file.originalName}-${file.size}-${file.updatedAt}`"  -->
-            <!-- class="flex items-center justify-between gap-4 rounded-[1.25rem] border border-slate-200 bg-white px-4 py-3
-                shadow-sm"> -->
             <li v-for="(file, index) in files" :key="file.id">
                 <div class="min-w-0">
                     <p class="truncate text-sm font-medium text-slate-950">

@@ -1,5 +1,5 @@
 import prisma from "../libs/prisma";
-import { UploadedFile } from "../types/upload";
+import type { UploadedFile } from "../types/upload";
 
 export async function getAllDocuments() {
   return prisma.document.findMany({

@@ -1,6 +1,5 @@
 import { uploadFiles } from "~~/server/services/upload.service";
 import { createDocument } from "~~/server/repositories/document.repository";
-import { parseDocument } from "~~/server/services/parsing.service";
 
 export default defineEventHandler(async (event) => {
   const parts = await readMultipartFormData(event);

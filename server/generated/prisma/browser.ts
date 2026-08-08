@@ -22,3 +22,8 @@ export * from './enums.ts';
  * 
  */
 export type Document = Prisma.DocumentModel
+/**
+ * Model Chunk
+ * 
+ */
+export type Chunk = Prisma.ChunkModel

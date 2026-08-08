@@ -16,14 +16,31 @@ model Document {
   size         Int
   hash         String          @unique
   text         String?
-  status       DocumentStatus? @default(UPLOADED)
-  createdAt    DateTime?       @default(now())
-  updatedAt    DateTime?       @updatedAt
+  status       DocumentStatus?
+
+  chunks Chunk[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Chunk {
+  id         String @id @default(cuid())
+  documentId String
+  content    String
+  index      Int
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([documentId])
 }
 
 enum DocumentStatus {
   UPLOADED
-  PROCESSING
+  PARSED
+  CHUNKED
   COMPLETED
   FAILED
 }

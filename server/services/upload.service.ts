@@ -1,10 +1,9 @@
 import { mkdir, writeFile } from "node:fs/promises";
-import type { MultiPartData } from "h3";
 import path, { join, resolve } from "node:path";
 import { randomUUID, createHash } from "node:crypto";
 import type { UploadedFile } from "../types/upload";
 
-export async function uploadFiles(parts: MultiPartData[]) {
+export async function uploadFiles(parts) {
   const allowedMimeTypes = [
     "application/pdf",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",

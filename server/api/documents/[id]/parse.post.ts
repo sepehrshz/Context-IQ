@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
     },
     data: {
       text,
-      status: "COMPLETED",
+      status: "PARSED",
     },
   });
 

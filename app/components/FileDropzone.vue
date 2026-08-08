@@ -27,7 +27,7 @@
                     Browse files
                 </button>
                 <p class="text-xs text-slate-500">
-                    PDF, DOCX, TXT, CSV, MD
+                    PDF, DOCX, TXT, MD
                 </p>
             </div>
         </div>

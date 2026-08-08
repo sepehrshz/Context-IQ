@@ -11,7 +11,8 @@
 
 export const DocumentStatus = {
   UPLOADED: 'UPLOADED',
-  PROCESSING: 'PROCESSING',
+  PARSED: 'PARSED',
+  CHUNKED: 'CHUNKED',
   COMPLETED: 'COMPLETED',
   FAILED: 'FAILED'
 } as const
