@@ -6,7 +6,7 @@ export interface DocumentFile {
   mimeType: string;
   size: number;
   hash: string;
-  status: "UPLOADED" | "PROCESSING" | "COMPLETED" | "FAILED";
+  status: "uploaded" | "parsing" | "parsed" | "chunking" | "chunked" | "failed";
   createdAt: string;
   updatedAt: string;
 }

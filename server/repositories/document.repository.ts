@@ -9,6 +9,14 @@ export async function getAllDocuments() {
   });
 }
 
+export async function getDocumentById(id: string) {
+  return prisma.document.findUnique({
+    where: {
+      id,
+    },
+  });
+}
+
 export async function createDocument(data: UploadedFile) {
   const existingDocument = await prisma.document.findUnique({
     where: {

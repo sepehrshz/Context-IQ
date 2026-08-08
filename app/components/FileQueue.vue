@@ -11,6 +11,7 @@
         <ul v-else class="max-h-[70vh] space-y-3 overflow-y-auto pr-2">
             <li v-for="(file, index) in files" :key="file.id">
                 <div class="min-w-0">
+                    <p>{{ file.status }}</p>
                     <p class="truncate text-sm font-medium text-slate-950">
                         {{ file.originalName }}
                     </p>

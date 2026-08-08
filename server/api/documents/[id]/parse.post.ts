@@ -1,4 +1,4 @@
-import { parseDocument } from "../../../services/parsing.service";
+import { parseDocument } from "../../../services/parsing.service.ts";
 import prisma from "../../../libs/prisma";
 
 export default defineEventHandler(async (event) => {

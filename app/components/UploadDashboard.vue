@@ -83,7 +83,14 @@ onMounted(async () => {
     files.value = await $fetch<DocumentFile[]>('/api/documents', { method: 'GET' })
 })
 
-const uploadState = ref<'idle' | 'ready' | 'uploading'>('idle')
+const uploadState = ref<'idle' | 'uploading' | 'ready'>('idle')
+type FileStatus =
+    | 'Uploaded'
+    | 'Parsing'
+    | 'Parsed'
+    | 'Chunking'
+    | 'Chunked'
+    | 'Failed'
 
 const fileCount = computed(() => files.value.length)
 const totalBytes = computed(() => files.value.reduce((sum, file) => sum + file.size, 0))
@@ -96,11 +103,11 @@ const uploadStateLabel = computed(() => {
 
     return uploadState.value === 'ready' ? 'Ready' : 'Idle'
 })
+
 const queueSubtitle = computed(() => {
     if (!fileCount.value) {
         return 'No files selected yet.'
     }
-
     return `${fileCount.value} file${fileCount.value === 1 ? '' : 's'} staged for ingestion.`
 })
 
@@ -111,6 +118,7 @@ async function addFiles(incomingFiles: File[]) {
 
     for (const file of incomingFiles) {
         const key = getFileKey(file)
+
         if (existingKeys.has(key)) {
             continue
         }
@@ -130,20 +138,59 @@ async function addFiles(incomingFiles: File[]) {
     uploadState.value = 'uploading'
 
     try {
+        // Upload
         const uploadedFiles = await saveFilesToServer(filesToUpload)
 
         files.value.push(...uploadedFiles)
 
+        // Parse
         for (const file of uploadedFiles) {
-            await $fetch(`/api/documents/${file.id}/parse`, {
-                method: 'POST',
-            })
+            try {
+                updateFileStatus(file.id, 'Parsing')
+
+                await $fetch(`/api/documents/${file.id}/parse`, {
+                    method: 'POST'
+                })
+
+                updateFileStatus(file.id, 'Parsed')
+
+                // Chunk
+                updateFileStatus(file.id, 'Chunking')
+
+                await $fetch(`/api/documents/${file.id}/chunk`, {
+                    method: 'POST'
+                })
+
+                updateFileStatus(file.id, 'Chunked')
+            } catch (error) {
+                console.error(`Failed to process ${file.originalName}`, error)
+
+                updateFileStatus(file.id, 'Failed')
+            }
         }
 
         diskFiles.value = []
+    } catch (error) {
+        console.error('Upload failed:', error)
+        uploadState.value = 'idle'
     } finally {
-        uploadState.value = 'ready'
+        if (uploadState.value !== 'idle') {
+            uploadState.value = 'ready'
+        }
     }
+}
+
+function updateFileStatus(
+    id: string,
+    status: FileStatus
+) {
+    const file = files.value.find(file => file.id === id)
+
+    if (!file) {
+        return
+    }
+
+    file.status = status
 }
 
 async function removeFile(index: number) {
