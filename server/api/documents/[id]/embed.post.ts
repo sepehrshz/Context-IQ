@@ -1,6 +1,7 @@
 import { getChunksByDocumentId } from "~~/server/repositories/chunk.repository";
 import { getDocumentById } from "~~/server/repositories/document.repository";
 import { generateEmbeddings } from "~~/server/services/embedding.service";
+import { upsertChunkVectors } from "~~/server/services/vector.service";
 
 export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, "id");
@@ -34,13 +35,40 @@ export default defineEventHandler(async (event) => {
 
   const embeddings = await generateEmbeddings(texts);
 
+  if (embeddings.length !== chunks.length) {
+    throw createError({
+      statusCode: 500,
+      statusMessage: "Embedding count does not match chunk count.",
+    });
+  }
+
+  const vectors = [];
+
+  for (let index = 0; index < chunks.length; index++) {
+    const chunk = chunks[index];
+    const embedding = embeddings[index];
+
+    if (!chunk || !embedding) {
+      throw createError({
+        statusCode: 500,
+        statusMessage: `Missing chunk or embedding at index ${index}.`,
+      });
+    }
+
+    vectors.push({
+      id: chunk.id,
+      vector: embedding,
+      content: chunk.content,
+      documentId: document.id,
+      index: chunk.index,
+    });
+  }
+
+  await upsertChunkVectors(vectors);
+
   return {
     ok: true,
     documentId: document.id,
-    chunks: chunks.map((chunk, index) => ({
-      chunkId: chunk.id,
-      index: chunk.index,
-      embedding: embeddings[index],
-    })),
+    chunksEmbedded: embeddings.length,
   };
 });

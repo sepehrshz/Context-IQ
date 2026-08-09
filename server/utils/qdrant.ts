@@ -1,6 +1,7 @@
 import { QdrantClient } from "@qdrant/js-client-rest";
 
 export const qdrant = new QdrantClient({
-  host: "localhost",
-  port: 6333,
+  url: "http://localhost:6333",
 });
+
+export const QDRANT_COLLECTION = "document_chunks";
