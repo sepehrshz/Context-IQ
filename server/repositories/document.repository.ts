@@ -1,5 +1,6 @@
 import prisma from "../libs/prisma";
 import type { UploadedFile } from "../types/upload";
+import type { DocumentStatus } from "../generated/prisma/client";
 
 export async function getAllDocuments() {
   return prisma.document.findMany({
@@ -23,16 +24,42 @@ export async function createDocument(data: UploadedFile) {
       hash: data.hash,
     },
   });
+
   if (existingDocument) {
     throw createError({
       statusCode: 409,
       statusMessage: "Duplicate file",
     });
-  } else {
-    return prisma.document.create({
-      data,
-    });
   }
+
+  return prisma.document.create({
+    data,
+  });
+}
+
+export async function updateDocumentStatus(
+  documentId: string,
+  status: DocumentStatus,
+) {
+  return prisma.document.update({
+    where: {
+      id: documentId,
+    },
+    data: {
+      status,
+    },
+  });
+}
+
+export async function updateDocumentText(documentId: string, text: string) {
+  return prisma.document.update({
+    where: {
+      id: documentId,
+    },
+    data: {
+      text,
+    },
+  });
 }
 
 export async function deleteDocument(id: string) {

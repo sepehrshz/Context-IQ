@@ -5,8 +5,5 @@ export interface DocumentFile {
   path: string;
   mimeType: string;
   size: number;
-  hash: string;
-  status: "uploaded" | "parsing" | "parsed" | "chunking" | "chunked" | "failed";
-  createdAt: string;
-  updatedAt: string;
+  status: DocumentStatus;
 }

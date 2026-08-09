@@ -7,7 +7,7 @@ export async function parseDocument(
   filePath: string,
   mimeType: string,
 ): Promise<string> {
-  const absolutePath = path.resolve(filePath);
+  const absolutePath = path.resolve(process.cwd(), filePath);
 
   switch (mimeType) {
     case "application/pdf":
@@ -28,7 +28,10 @@ export async function parseDocument(
 async function parsePdf(filePath: string): Promise<string> {
   const buffer = await readFile(filePath);
 
-  const parser = new PDFParse({ data: buffer });
+  const parser = new PDFParse({
+    data: buffer,
+  });
+
   const data = await parser.getText();
 
   return data.text.trim();

@@ -1,5 +1,5 @@
 import prisma from "../libs/prisma";
-import type { DocumentChunk } from "../services/chunking.service.ts";
+import type { DocumentChunk } from "../services/chunking.service";
 
 export async function createChunks(
   documentId: string,

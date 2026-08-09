@@ -43,6 +43,18 @@ export async function initVectorCollection() {
 }
 
 export async function upsertChunkVectors(vectors: ChunkVector[]) {
+  if (!vectors.length) {
+    return;
+  }
+
+  for (const vector of vectors) {
+    if (!Array.isArray(vector.vector) || vector.vector.length !== 1024) {
+      throw new Error(
+        `Invalid embedding for chunk ${vector.id}. Expected 1024 dimensions.`,
+      );
+    }
+  }
+
   await initVectorCollection();
 
   await qdrant.upsert(QDRANT_COLLECTION, {
