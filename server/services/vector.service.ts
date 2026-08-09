@@ -1,4 +1,5 @@
-import { qdrant, QDRANT_COLLECTION } from "../../server/utils/qdrant";
+import { qdrant, QDRANT_COLLECTION } from "~~/server/utils/qdrant";
+import { createHash } from "node:crypto";
 
 export interface ChunkVector {
   id: string;
@@ -6,6 +7,20 @@ export interface ChunkVector {
   content: string;
   documentId: string;
   index: number;
+}
+
+function getQdrantPointId(chunkId: string): string {
+  const hash = createHash("md5").update(chunkId).digest("hex");
+
+  return [
+    hash.substring(0, 8),
+    hash.substring(8, 12),
+    "5" + hash.substring(13, 16),
+    ((parseInt(hash.substring(16, 18), 16) & 0x3f) | 0x80)
+      .toString(16)
+      .padStart(2, "0") + hash.substring(18, 20),
+    hash.substring(20, 32),
+  ].join("-");
 }
 
 export async function initVectorCollection() {
@@ -34,7 +49,7 @@ export async function upsertChunkVectors(vectors: ChunkVector[]) {
     wait: true,
 
     points: vectors.map((item) => ({
-      id: crypto.randomUUID(),
+      id: getQdrantPointId(item.id),
 
       vector: item.vector,
 
