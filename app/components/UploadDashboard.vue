@@ -190,7 +190,7 @@ function updateFileStatus(
         return
     }
 
-    file.status = status
+    // file.status = status
 }
 
 async function removeFile(index: number) {
