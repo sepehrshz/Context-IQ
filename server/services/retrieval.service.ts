@@ -12,5 +12,5 @@ export async function searchDocuments(query: string, limit = 5) {
 
   const results = await searchSimilarChunks(queryVector, limit);
 
-  return results.filter((result) => result.score >= 0.45);
+  return results;
 }
