@@ -8,7 +8,7 @@ export async function generateEmbeddings(texts: string[]) {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(texts),
+    body: JSON.stringify({ texts }),
   });
 
   if (!response.ok) {

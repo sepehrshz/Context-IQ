@@ -13,3 +13,14 @@ export async function createChunks(
     })),
   });
 }
+
+export async function getChunksByDocumentId(documentId: string) {
+  return prisma.chunk.findMany({
+    where: {
+      documentId,
+    },
+    orderBy: {
+      index: "asc",
+    },
+  });
+}
