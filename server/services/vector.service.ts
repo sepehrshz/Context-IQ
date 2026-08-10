@@ -84,3 +84,21 @@ export async function searchSimilarChunks(vector: number[], limit = 5) {
     with_payload: true,
   });
 }
+
+export async function deleteDocumentVectors(documentId: string) {
+  await initVectorCollection();
+
+  return qdrant.delete(QDRANT_COLLECTION, {
+    wait: true,
+    filter: {
+      must: [
+        {
+          key: "documentId",
+          match: {
+            value: documentId,
+          },
+        },
+      ],
+    },
+  });
+}

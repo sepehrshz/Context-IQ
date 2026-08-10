@@ -31,8 +31,7 @@ export async function processDocument(documentId: string) {
     await updateDocumentStatus(documentId, DocumentStatus.PARSING);
 
     const text = await parseDocument(document.path, document.mimeType);
-
-    if (!text.trim()) {
+    if (!text) {
       throw new Error("Document contains no readable text.");
     }
 
@@ -47,7 +46,6 @@ export async function processDocument(documentId: string) {
     await updateDocumentStatus(documentId, DocumentStatus.CHUNKING);
 
     const chunks = createDocumentChunks(text);
-
     if (!chunks.length) {
       throw new Error("No chunks could be created.");
     }
@@ -61,7 +59,6 @@ export async function processDocument(documentId: string) {
     // =========================
 
     const storedChunks = await getChunksByDocumentId(documentId);
-
     if (!storedChunks.length) {
       throw new Error("Chunks were created but could not be retrieved.");
     }
@@ -75,7 +72,6 @@ export async function processDocument(documentId: string) {
     const embeddings = await generateEmbeddings(
       storedChunks.map((chunk) => chunk.content),
     );
-
     if (embeddings.length !== storedChunks.length) {
       throw new Error(
         `Embedding count mismatch. Chunks: ${storedChunks.length}, embeddings: ${embeddings.length}`,

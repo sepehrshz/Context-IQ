@@ -1,4 +1,3 @@
-```vue
 <template>
     <section class="py-8 sm:py-10">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -167,15 +166,78 @@ async function addFiles(selectedFiles: File[]) {
         })
 
         if (response) {
+            for (const resFile of response) {
+                await $fetch(`/api/documents/${resFile.id}/document-processing`, {
+                    method: 'POST',
+                })
+            }
             files.value.push(...response)
+            startPolling()
         }
     } catch (error) {
         console.error('Failed to upload files:', error)
     }
 }
 
-function removeFile(index: number) {
-    files.value.splice(index, 1)
+let pollingTimer: ReturnType<typeof setInterval> | null = null
+
+const isProcessing = computed(() => {
+    return files.value.some(
+        file =>
+            file.status !== 'COMPLETED' &&
+            file.status !== 'FAILED'
+    )
+})
+
+async function refreshDocuments() {
+    try {
+        const documents = await $fetch('/api/documents')
+
+        files.value = documents
+    } catch (error) {
+        console.error('Failed to refresh documents:', error)
+    }
+}
+
+function startPolling() {
+    if (pollingTimer) {
+        return
+    }
+
+    pollingTimer = setInterval(async () => {
+        await refreshDocuments()
+
+        if (!isProcessing.value) {
+            stopPolling()
+        }
+    }, 2000)
+}
+
+function stopPolling() {
+    if (!pollingTimer) {
+        return
+    }
+
+    clearInterval(pollingTimer)
+    pollingTimer = null
+}
+
+async function removeFile(index: number) {
+    const file = files.value[index]
+
+    if (!file) {
+        return
+    }
+
+    try {
+        await $fetch(`/api/documents/${file.id}`, {
+            method: 'DELETE',
+        })
+
+        files.value.splice(index, 1)
+    } catch (error) {
+        console.error('Failed to delete document:', error)
+    }
 }
 
 function clearFiles() {
@@ -201,5 +263,16 @@ function formatBytes(bytes: number) {
         : value.toFixed(1)
         } ${units[unitIndex]}`
 }
+
+onMounted(async () => {
+    await refreshDocuments()
+
+    if (isProcessing.value) {
+        startPolling()
+    }
+})
+
+onUnmounted(() => {
+    stopPolling()
+})
 </script>
-```

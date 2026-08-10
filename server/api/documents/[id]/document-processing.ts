@@ -1,5 +1,5 @@
 import { getRouterParam, createError, defineEventHandler } from "h3";
-import { processDocument } from "../../server/services/document-processing.service";
+import { processDocument } from "../../../services/document-processing.service";
 
 export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, "id");
@@ -12,9 +12,9 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const result = await processDocument(id);
-
-    return result;
+    processDocument(id).catch((error) => {
+      console.error(`Document processing failed: ${id}`, error);
+    });
   } catch (error) {
     console.error("Document ingestion failed:", error);
 
