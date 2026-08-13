@@ -8,6 +8,7 @@ export async function generateAnswer(query: string, context: string) {
   const response = await openrouter.chat.send({
     chatRequest: {
       model: "nvidia/nemotron-3-ultra-550b-a55b:free",
+      // model: "openrouter/free",
 
       stream: false,
       messages: [

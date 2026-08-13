@@ -8,7 +8,7 @@ export default defineNuxtConfig({
     "@nuxt/hints",
     "@nuxt/image",
     "@nuxt/ui",
-    "@nuxtjs/eslint-module",
+    // "@nuxtjs/eslint-module",
     "@nuxtjs/i18n",
   ],
 });
