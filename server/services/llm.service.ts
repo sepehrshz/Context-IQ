@@ -8,9 +8,9 @@ export async function generateAnswer(query: string, context: string) {
   const response = await openrouter.chat.send({
     chatRequest: {
       model: "nvidia/nemotron-3-ultra-550b-a55b:free",
-      // model: "openrouter/free",
 
       stream: false,
+
       messages: [
         {
           role: "system",
@@ -24,10 +24,12 @@ Rules:
 - Do not invent facts.
 - If the answer cannot be found in the context, say that you don't have enough information.
 - Give a clear and concise answer.
+- Answer in the same language as the user's question.
+- Use Markdown formatting when appropriate.
 
 Context:
 ${context}
-`,
+                    `.trim(),
         },
         {
           role: "user",
@@ -37,5 +39,9 @@ ${context}
     },
   });
 
-  return response.choices[0]?.message?.content ?? "";
+  if ("choices" in response) {
+    return response.choices[0]?.message?.content ?? "";
+  }
+
+  throw new Error("OpenRouter returned a streaming response unexpectedly.");
 }
